@@ -10,8 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "finals-lab-exam-inventory-prolang": "^1.0.0",
-    "finals-prolang": "^1.0.0",
     "finals-prolang-exam-lab": "^1.0.0",
     "flowbite": "^2.3.0",
     "react": "^18.2.0",
