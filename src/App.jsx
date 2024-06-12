@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { useEffect } from 'react';
 import { useCallback } from 'react';
 import './App.css'
+// this is importin the library
 import { create, read,isValidDiscription,isValidPartNumber,isValidPrice } from 'finals-prolang-exam-lab'
 
-//heelo
 function App() {
+  //defining the variables needed in the inventory system
   const [isModalOpen, setIsModalOpen] = useState(false);
     // Set up state to manage form inputs
   const [partNumber, setPartNumber] = useState('');
@@ -13,6 +14,7 @@ function App() {
   const [description, setDescription] = useState('');
   const [parts, setParts] = useState([]);
   const [error, setError] = useState('');
+  const [editIndex, setEditIndex] = useState(null);  // Track the index of the part being edited
   // const [merror, msetError] = useState(false);
   
 
@@ -34,30 +36,46 @@ function App() {
       setError('Invalid description. Description length should be at most 26 characters.');
       return;
     }
-    
-  
-        create(newPart);
+     if (editIndex !== null) {
+      // Update the existing part
+      const updatedParts = parts.map((part, index) =>
+        index === editIndex ? newPart : part
+      );
+      setParts(updatedParts);
+      setEditIndex(null);  // Reset the edit index
+    } else {
+      // Add the new part
+      setParts((prevParts) => [...prevParts, newPart]);
+    }
+      create(newPart);
       toggleModal()
-       setParts((prevParts) => [...prevParts, newPart]);
+       
     // Optionally, you can clear the form inputs after submission
     setPartNumber('');
     setPrice('');
     setDescription('');
     setError('')
-    
- 
-   
-   
   });
+  //function for deleting rows in inventory
+   const handleDelete = useCallback((index) => {
+    setParts((prevParts) => prevParts.filter((_, i) => i !== index));
+   }, []);
+  //function for editing the rows
+   const handleEdit = useCallback((index) => {
+    const part = parts[index];
+    setPartNumber(part.partNumber);
+    setPrice(part.price);
+    setDescription(part.description);
+    setEditIndex(index);  // Set the index of the part being edited
+    toggleModal();
+  }, [parts]);
 
   // Use useEffect to call the read function when the component mounts
   useEffect(() => {
     console.log(read());
   }, [handleSubmit]);
 
-  
-
-   const toggleModal = () => {
+  const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
   return (
@@ -65,16 +83,12 @@ function App() {
       <div className='bg-[#faf0ef] min-h-screen w-dvw'>
         <h1 className='text-center p-11 text-[#64241b] text-7xl'>INVENTORY SYSTEM</h1>
         <div className='px-[15rem]'>
-          
-        
-          
-
-
           <div className='flex flex-row-reverse py-3'>
             <button data-modal-target="crud-modal" onClick={toggleModal} data-modal-toggle="crud-modal" className="block text-[#230e0b] bg-[#e08b80] hover:bg-[#ad3425] focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center " type="button">
-  ADD ITEM
-</button>
-</div>
+          ADD ITEM
+        </button>
+          </div>
+           {/* this block of code is for displaying the modal for add and editing */}
         {isModalOpen && (
             <div className='fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50'>
               <div id="crud-modal" tabIndex="-1" className="relative p-4 w-full max-w-md max-h-full">
@@ -115,6 +129,7 @@ function App() {
           </div>
         </div>
       )}
+                    {/* this block of code is for user inputs */}
                   <form className="p-4 md:p-5" onSubmit={handleSubmit}>
                     <div className="grid gap-4 mb-4 grid-cols-2">
                       <div className="col-span-2">
@@ -185,7 +200,8 @@ function App() {
               </div>
             </div>
           )}
-         
+        
+            {/* this block of code is for displaying the table of parts items */}
           <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
         <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
           <thead className="text-xs text-[#ad3425] uppercase bg-[#e08b80] dark:text-[#ad3425]">
@@ -205,7 +221,10 @@ function App() {
                 <td className="px-6 py-4 text-[#230e0b] ">{part.description}</td>
                 <td className="px-6 py-4 text-[#230e0b]">₱ {part.price}</td>
                 <td className="px-6 py-4 text-[#230e0b] text-right">
-                  <a href="#" className="font-medium text-[#230e0b]  hover:underline">Edit</a>
+                  <div className='flex flex-row justify-between'>
+                     <button onClick={() => handleEdit(index)} className="font-medium text-[#230e0b]  "><img src='/editing.png'/></button>
+                  <button onClick={() => handleDelete(index)}  className="font-medium text-[#230b0e]   "><img src='/delete.png'/></button>
+                 </div>
                 </td>
               </tr>
             ))}
